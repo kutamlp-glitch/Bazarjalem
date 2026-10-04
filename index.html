@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>آؤ بازار چلیں – Humsafar Urdu Class 5</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&family=Noto+Sans+Malayalam&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:'Baloo 2','Noto Sans Malayalam',sans-serif;background:linear-gradient(#e0f7ff,#fff7d6);min-height:100vh}
+  .ur{font-family:'Noto Nastaliq Urdu',serif;direction:rtl;line-height:2.2}
+  .w{cursor:pointer;padding:0 3px;border-radius:8px}.w:hover{background:#fde68a}
+  .tab.on{background:#f97316;color:#fff}
+  .card{background:#fff;border-radius:1.25rem;box-shadow:0 4px 14px #0002;padding:1rem}
+  .btn{background:#22c55e;color:#fff;border-radius:999px;padding:.4rem 1rem;font-weight:800}
+  .chip{background:#fff;border:2px solid #38bdf8;border-radius:12px;padding:.2rem .7rem;cursor:pointer}
+  .chip.sel{background:#fde047}
+  .shop{min-height:130px;border:3px dashed #f97316;border-radius:1rem;padding:.5rem}
+  .ok{background:#bbf7d0!important}.bad{background:#fecaca!important}
+  @keyframes bob{50%{transform:translateY(-8px)}}.bob{animation:bob 1.5s infinite}
+  @keyframes fall{to{transform:translateY(105vh) rotate(720deg)}}
+  .conf{position:fixed;top:-30px;font-size:26px;animation:fall 3s linear forwards;z-index:50;pointer-events:none}
+  canvas{touch-action:none;background:#fffbe6;border-radius:1rem;border:3px solid #f97316;max-width:100%}
+</style>
+</head>
+<body class="p-3">
+<header class="text-center">
+  <div class="text-6xl bob inline-block">🧒</div>
+  <h1 class="text-3xl font-extrabold text-orange-600">آؤ بازار چلیں <span class="text-base block text-slate-600">Let's go to the market · നമുക്ക് ചന്തയിലേക്ക് പോകാം</span></h1>
+  <p class="font-bold">⭐ Stars: <span id="stars">0</span></p>
+</header>
+
+<nav id="tabs" class="flex flex-wrap gap-2 justify-center my-3 text-sm font-bold"></nav>
+<main id="view" class="max-w-3xl mx-auto"></main>
+
+<!-- Word meaning popup -->
+<div id="pop" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 card border-4 border-yellow-300 text-center z-40 w-80 max-w-[92vw]">
+  <div id="pw" class="ur text-3xl"></div><div id="pt" class="text-slate-500"></div>
+  <div id="pm" class="text-lg font-bold text-purple-700"></div><div id="pe" class="text-lg"></div>
+  <button class="btn mt-1" onclick="pop.classList.add('hidden')">OK</button>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+// word: [transliteration, Malayalam, English]
+const D={
+'بازار':['bazaar','ചന്ത / ബസാർ','market'],'بھیڑ':['bheed','തിരക്ക്','crowd'],'گاڑیاں':['gaadiyaan','വാഹനങ്ങൾ','vehicles'],
+'لوگ':['log','ആളുകൾ','people'],'سامان':['saaman','സാധനങ്ങൾ','goods'],'خریدنے':['khareedne','വാങ്ങാൻ','to buy'],'بیچنے':['bechne','വിൽക്കാൻ','to sell'],
+'جاوید':['Javed','ജാവേദ്','Javed'],'بیٹے':['bete','മകൻ','son'],'فرحان':['Farhan','ഫർഹാൻ','Farhan'],'بیٹا':['beta','മോനേ / മകൻ','son'],
+'تیزی':['teezi','വേഗത്തിൽ','fast'],'دکان':['dukaan','കട','shop'],'دکان دار':['dukaandaar','കടക്കാരൻ','shopkeeper'],'دونوں':['donon','രണ്ടുപേരും','both'],
+'صاحب':['saahab','സർ','sir'],'چاہیے':['chahiye','വേണം','want / need'],'کیلا':['kela','വാഴപ്പഴം','banana'],'کیلے':['kele','വാഴപ്പഴം','bananas'],
+'دام':['daam','വില','price'],'کلو':['kilo','കിലോ','kilo'],'چالیس':['chaalees','നാൽപ്പത്','forty'],'روپے':['rupaye','രൂപ','rupees'],
+'انگور':['angoor','മുന്തിരി','grapes'],'کل':['kul','ആകെ','total'],'کتنے':['kitne','എത്ര','how many'],'پیسے':['paise','പണം','money'],
+'چاول':['chawal','അരി','rice'],'دال':['daal','പരിപ്പ്','lentils'],'تیل':['tel','എണ്ണ','oil'],'ناریل':['nariyal','തേങ്ങ','coconut'],'لٹر':['litre','ലിറ്റർ','litre'],
+'گیند':['geind','പന്ത്','ball'],'گڑیا':['gudiya','പാവ','doll'],'ٹوپی':['topi','തൊപ്പി','cap'],'ابو':['abbu','അച്ഛൻ','father'],
+'بیس':['bees','ഇരുപത്','twenty'],'دس':['das','പത്ത്','ten'],'تیس':['tees','മുപ്പത്','thirty'],'پندرہ':['pandrah','പതിനഞ്ച്','fifteen'],
+'بس':['bus','ബസ്','bus'],'ریل گاڑی':['rail gaadi','തീവണ്ടി','train'],'ہوائی جہاز':['hawai jahaz','വിമാനം','aeroplane'],'جہاز':['jahaaz','കപ്പൽ','ship'],
+'پٹری':['patri','പാളം','track'],'سڑک':['sadak','റോഡ്','road'],'ہوا':['hawa','വായു','air'],'پانی':['paani','വെള്ളം','water'],
+'اسٹیشن':['station','സ്റ്റേഷൻ','station'],'بس اڈّے':['bus adde','ബസ് സ്റ്റാൻഡ്','bus stand'],'ہوائی اڈّے':['hawai adde','വിമാനത്താവളം','airport'],'بندرگاہ':['bandargah','തുറമുഖം','harbour'],
+'موٹر سائیکل':['motor cycle','ബൈക്ക്','motorcycle'],'کار':['car','കാർ','car'],'درخت':['darakht','മരം','tree'],'بچّے':['bachche','കുട്ടികൾ','children'],
+'انار':['anaar','മാതളം','pomegranate'],'انناس':['ananaas','കൈതച്ചക്ക','pineapple'],'سنترہ':['santara','ഓറഞ്ച്','orange'],'تربوز':['tarbooz','തണ്ണിമത്തൻ','watermelon'],
+'آلو':['aalu','ഉരുളക്കിഴങ്ങ്','potato'],'ٹماٹر':['tamatar','തക്കാളി','tomato'],'پیاز':['pyaaz','ഉള്ളി','onion'],'کدّو':['kaddu','മത്തങ്ങ','pumpkin'],'مرچ':['mirch','മുളക്','chilli'],
+'شکر':['shakkar','പഞ്ചസാര','sugar'],'نمک':['namak','ഉപ്പ്','salt'],'گیہوں':['gehun','ഗോതമ്പ്','wheat']
+};
+const strip=s=>s.replace(/[۔؟!،"“”'?.:]/g,'').trim();
+
+// Reading lines: [speaker, urdu, malayalam, english]
+const READ=[
+['📖','بازار میں بہت بھیڑ ہے۔','ചന്തയിൽ വലിയ തിരക്കാണ്.','There is a big crowd in the market.'],
+['📖','گاڑیاں پوں پوں کرتی ہیں۔','വാഹനങ്ങൾ പോം പോം എന്ന് ഹോൺ മുഴക്കുന്നു.','Vehicles go "pon pon".'],
+['📖','لوگ سامان خریدنے اور بیچنے کے لیے آتے جاتے ہیں۔','ആളുകൾ സാധനം വാങ്ങാനും വിൽക്കാനും വന്നുപോകുന്നു.','People come and go to buy and sell goods.'],
+['📖','جاوید اپنے بیٹے فرحان کے ساتھ بازار پہنچا۔','ജാവേദ് മകൻ ഫർഹാനോടൊപ്പം ചന്തയിലെത്തി.','Javed reached the market with his son Farhan.'],
+['👨 جاوید','"دیکھ کر چلو بیٹا! گاڑیاں تیزی سے آ رہی ہیں۔"','നോക്കി നടക്ക് മോനേ! വണ്ടികൾ വേഗത്തിൽ വരുന്നു.','"Walk carefully, son! Vehicles are coming fast."'],
+['📖','دونوں دکان پہنچے۔ دکان دار پوچھنے لگا۔','രണ്ടുപേരും കടയിലെത്തി. കടക്കാരൻ ചോദിച്ചു.','Both reached the shop. The shopkeeper began to ask.'],
+['🍌 دکان دار','آئیے صاحب! کیا چاہیے؟','വരൂ സർ! എന്താണ് വേണ്ടത്?','Come, sir! What would you like?'],
+['👨 جاوید','کیلا چاہیے۔ کیلے کے دام کیا ہیں؟','വാഴപ്പഴം വേണം. വില എത്രയാണ്?','I want bananas. What is their price?'],
+['🍌 دکان دار','ایک کلو چالیس روپے۔','ഒരു കിലോ നാൽപ്പത് രൂപ.','Forty rupees a kilo.'],
+['👨 جاوید','دو کلو کیلے دیجیے۔','രണ്ട് കിലോ വാഴപ്പഴം തരൂ.','Give me two kilos of bananas.'],
+['🍌 دکان دار','اور کیا چاہیے؟','വേറെ എന്താണ് വേണ്ടത്?','What else do you want?'],
+['👨 جاوید','ایک کلو انگور دیجیے۔ کل کتنے ہوئے؟','ഒരു കിലോ മുന്തിരി തരൂ. ആകെ എത്രയായി?','Give one kilo of grapes. How much in total?'],
+['🍌 دکان دار','ایک سو بیس روپے۔','നൂറ്റിയിരുപത് രൂപ.','One hundred twenty rupees.'],
+['👨 جاوید','یہ لیجیے پیسے۔','ഇതാ പണം.','Here is the money.'],
+['🌾 دکان دار','آداب صاحب! کیا چاہیے؟','നമസ്കാരം സർ! എന്താണ് വേണ്ടത്?','Greetings, sir! What do you need?'],
+['👨 جاوید','چار کلو چاول اور آدھا کلو دال۔','നാല് കിലോ അരിയും അര കിലോ പരിപ്പും.','Four kilos of rice and half a kilo of dal.'],
+['🌾 دکان دار','اور کیا چاہیے؟','വേറെ എന്താണ്?','What else?'],
+['👨 جاوید','ایک لٹر ناریل کا تیل۔','ഒരു ലിറ്റർ വെളിച്ചെണ്ണ.','One litre of coconut oil.'],
+['👦 فرحان','ابو! مجھے گیند چاہیے!','അച്ഛാ! എനിക്ക് പന്ത് വേണം!','Dad! I want a ball!'],
+['👨 جاوید','ہاں بیٹا! نادرہ کے لیے گڑیا بھی لے لیں گے۔','ശരി മോനേ! നാദിറയ്ക്ക് പാവയും വാങ്ങാം.','Yes son! We will also take a doll for Nadira.']
+];
+
+const SORT=[
+['انار','🍎','f'],['انناس','🍍','f'],['سنترہ','🍊','f'],['تربوز','🍉','f'],['کیلا','🍌','f'],
+['آلو','🥔','v'],['ٹماٹر','🍅','v'],['پیاز','🧅','v'],['کدّو','🎃','v'],['مرچ','🌶️','v'],
+['چاول','🍚','g'],['دال','🫘','g'],['شکر','🍬','g'],['نمک','🧂','g'],['گیہوں','🌾','g']];
+const SHOPS={f:'پھل کی دکان 🍎 Fruit',v:'ترکاری کی دکان 🥕 Vegetable',g:'پنساری کی دکان 🌾 Grocery'};
+
+const TOY=[ // blanks in toy shop dialogue
+['دکان دار','گڑیا کا دام ____۔',['بیس روپے ہے','دس روپے ہے','پندرہ روپے ہے'],0],
+['فرحان','ٹوپی کا ____؟',['دام کیا ہے','کیا چاہیے','کتنے ہوئے'],0],
+['دکان دار','ٹوپی کا دام ____۔',['بیس روپے ہے','دس روپے ہے','پندرہ روپے ہے'],1],
+['دکان دار','کل ____ ہوئے۔',['دس روپے','پچاس روپے','تیس روپے'],2]];
+
+const VEH=[
+['پٹری پر میں چلتی ہوں۔ ہر اسٹیشن پر رُکتی ہوں۔','🚆','ریل گاڑی','Track · Station / പാളം · സ്റ്റേഷൻ'],
+['سڑک پر میں چلتی ہوں۔ بس اڈّے پر رُکتی ہوں۔','🚌','بس','Road · Bus stand / റോഡ് · ബസ് സ്റ്റാൻഡ്'],
+['میں ہوا میں اڑتی ہوں۔ ہوائی اڈّے پر رُکتی ہوں۔','✈️','ہوائی جہاز','Air · Airport / ആകാശം · വിമാനത്താവളം'],
+['میں پانی میں بہتی ہوں۔ بندرگاہ میں رُکتی ہوں۔','🚢','جہاز','Water · Harbour / വെള്ളം · തുറമുഖം']];
+
+const QUIZ=[
+['کیلے کے دام کیا ہیں؟ → ایک کلو ____ روپے۔ (Banana price?)',['چالیس','بیس','دس'],0],
+['"گڑیا" means? / "ഗുഡിയ" എന്നാൽ?',['Doll / പാവ','Ball / പന്ത്','Cap / തൊപ്പി'],0],
+['"دکان دار" means?',['Shopkeeper / കടക്കാരൻ','Father / അച്ഛൻ','Driver / ഡ്രൈവർ'],0],
+['Farhan wanted a ____ . (فرحان کو کیا چاہیے؟)',['گیند / ball','انگور / grapes','دال / dal'],0],
+['Which is a vegetable? / പച്ചക്കറി ഏത്?',['آلو','انناس','انار'],0],
+['"ہوائی جہاز" ____ میں اڑتا ہے۔',['ہوا','پانی','پٹری'],0],
+['"چاول" means?',['Rice / അരി','Salt / ഉപ്പ്','Sugar / പഞ്ചസാര'],0]];
+
+const BUILD=['یہ','بازار','ہے','بازار میں','بہت','بھیڑ','لوگ','گاڑیاں','دکان','موٹر سائیکل','بس','کار','درخت','ہیں','ہے۔','ہیں۔','چلتی ہیں۔','خریدتے ہیں۔','بچّے','دیکھتے ہیں۔'];
+const TRACE=['بس','دال','نمک','کیلا','دکان','بازار','گیند','ٹوپی'];
+
+/* ---------- HELPERS ---------- */
+let stars=0;const $=id=>document.getElementById(id);
+const pop=$('pop');
+const addStar=n=>{stars+=n;$('stars').textContent=stars};
+function speak(t){ // Text-to-speech in Urdu
+  if(!('speechSynthesis' in window)){alert('Speech not supported in this browser');return}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(strip(t));
+  const vs=speechSynthesis.getVoices();const v=vs.find(x=>x.lang.startsWith('ur'));
+  if(v){u.voice=v;u.lang=v.lang}else u.lang='ur-PK';u.rate=.8;speechSynthesis.speak(u);
+}
+speechSynthesis&&speechSynthesis.getVoices();
+function sent(t){ // make every word clickable
+  const toks=t.split(' ');let h='';
+  for(let i=0;i<toks.length;i++){
+    let two=strip(toks[i]+' '+(toks[i+1]||''));
+    if(D[two]){h+=`<span class="w" data-k="${two}">${toks[i]} ${toks[i+1]}</span> `;i++}
+    else h+=`<span class="w" data-k="${strip(toks[i])}">${toks[i]}</span> `;
+  }return h;
+}
+document.addEventListener('click',e=>{
+  const w=e.target.closest('.w');if(!w)return;
+  const k=w.dataset.k;speak(k);const d=D[k];
+  $('pw').textContent=k;$('pt').textContent=d?d[0]:'';$('pm').textContent=d?d[1]:'(tap 🔊 to hear)';$('pe').textContent=d?d[2]:'';
+  pop.classList.remove('hidden');
+});
+function confetti(){
+  for(let i=0;i<40;i++){const c=document.createElement('div');c.className='conf';
+    c.textContent=['🎉','⭐','🎈','🍎','✨'][i%5];c.style.left=Math.random()*100+'vw';c.style.animationDelay=Math.random()+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500)}
+}
+const shuffle=a=>[...a].sort(()=>Math.random()-.5);
+
+/* ---------- TABS ---------- */
+const TABS=[['read','📖 Read'],['sort','🧺 Sort'],['toy','🧸 Toy Shop'],['veh','🚌 Vehicles'],['write','✏️ Sentences'],['quiz','🏆 Quiz'],['trace','🖌️ Trace']];
+$('tabs').innerHTML=TABS.map(t=>`<button class="tab card !py-1 !px-3" id="t_${t[0]}" onclick="go('${t[0]}')">${t[1]}</button>`).join('');
+function go(k){TABS.forEach(t=>$('t_'+t[0]).classList.toggle('on',t[0]===k));$('view').innerHTML='';V[k]($('view'))}
+
+const V={};
+/* ---------- READ ---------- */
+V.read=el=>{
+  el.innerHTML=`<p class="text-center text-sm mb-2">👆 Tap any Urdu word to hear it and see Malayalam + English. Tap 🔊 for the whole line.</p>`+
+  READ.map(r=>`<div class="card mb-2"><div class="flex justify-between items-center"><b class="text-orange-600">${r[0]}</b>
+  <button class="btn" onclick="speak(READ[${READ.indexOf(r)}][1])">🔊</button></div>
+  <div class="ur text-2xl">${sent(r[1])}</div><div class="text-purple-700">${r[2]}</div><div class="text-slate-600">${r[3]}</div></div>`).join('');
+};
+
+/* ---------- SORT GAME (drag-drop + tap fallback) ---------- */
+V.sort=el=>{
+  let sel=null,done=0;
+  el.innerHTML=`<p class="text-center font-bold mb-2">Put each item in the right shop! Drag it, or tap the item then tap the shop. / ശരിയായ കടയിൽ ഇടൂ!</p>
+  <div id="pool" class="flex flex-wrap gap-2 justify-center mb-3 card"></div>
+  <div class="grid md:grid-cols-3 gap-2">${Object.keys(SHOPS).map(k=>`<div><div class="font-bold text-center bg-yellow-300 rounded-t-xl p-1">${SHOPS[k]}</div><div class="shop flex flex-wrap gap-1 bg-white" data-s="${k}"></div></div>`).join('')}</div>`;
+  const pool=$('pool');
+  shuffle(SORT).forEach((s,i)=>{
+    const b=document.createElement('div');b.className='chip text-center';b.draggable=true;b.id='it'+i;b.dataset.s=s[2];
+    b.innerHTML=`<div class="text-3xl">${s[1]}</div><div class="ur !leading-snug w" data-k="${s[0]}">${s[0]}</div>`;
+    b.ondragstart=e=>e.dataTransfer.setData('t',b.id);
+    b.onclick=()=>{document.querySelectorAll('.chip').forEach(c=>c.classList.remove('sel'));sel=b;b.classList.add('sel')};
+    pool.appendChild(b)});
+  const place=(b,shop)=>{
+    if(b.dataset.s===shop.dataset.s){shop.appendChild(b);b.draggable=false;b.classList.add('ok');b.classList.remove('sel');sel=null;addStar(1);
+      if(++done===SORT.length){confetti();alert('🎉 Shabash! Well done! ശബാഷ്!')}}
+    else{b.classList.add('bad');setTimeout(()=>b.classList.remove('bad'),600)}};
+  document.querySelectorAll('.shop').forEach(s=>{
+    s.ondragover=e=>e.preventDefault();
+    s.ondrop=e=>{e.preventDefault();place($(e.dataTransfer.getData('t')),s)};
+    s.onclick=()=>{if(sel)place(sel,s)}});
+};
+
+/* ---------- TOY SHOP FILL-IN ---------- */
+V.toy=el=>{
+  el.innerHTML=`<div class="card mb-2 text-center">🧸 <b>کھلونے کی دکان</b> – Price list: گیند ⚽ 15 · ٹوپی 🧢 10 · گڑیا 🪆 20 rupees<br>
+  <span class="text-sm">Complete the talk between Farhan and the shopkeeper. / സംഭാഷണം പൂർത്തിയാക്കൂ.</span></div>
+  <div class="card mb-2"><div class="ur text-xl"><b>دکان دار:</b> کیا چاہیے بیٹا؟</div><div class="ur text-xl"><b>فرحان:</b> گڑیا کا کیا دام ہے؟</div></div>`+
+  TOY.map((t,i)=>`<div class="card mb-2"><div class="ur text-xl"><b>${t[0]}:</b> <span id="bl${i}">${t[1]}</span></div>
+  <div class="flex flex-wrap gap-2 justify-center ur">${t[2].map((o,j)=>`<button class="chip text-lg" onclick="toyPick(${i},${j},this)">${o}</button>`).join('')}</div></div>`).join('')+
+  `<div id="toyOk" class="text-center text-xl font-bold text-green-600"></div>`;
+};
+let toyDone={};
+function toyPick(i,j,b){
+  const t=TOY[i];
+  if(j===t[3]){b.classList.add('ok');$('bl'+i).innerHTML=`<span class="w" data-k="${t[2][j]}">${t[2][j]}</span>`;
+    speak(t[1].replace('____',t[2][j]));if(!toyDone[i]){toyDone[i]=1;addStar(2)}
+    if(Object.keys(toyDone).length===TOY.length){confetti();$('toyOk').textContent='🎉 Perfect! 10 + 20 = 30 روپے'}}
+  else{b.classList.add('bad')}
+}
+
+/* ---------- VEHICLES ---------- */
+V.veh=el=>{
+  el.innerHTML=`<p class="text-center font-bold mb-2">Read the clue. Which vehicle am I? / ഞാൻ ഏത് വാഹനം?</p>`+
+  VEH.map((v,i)=>`<div class="card mb-3"><div class="ur text-xl">${sent(v[0])}</div>
+  <div class="flex flex-wrap gap-2 justify-center mt-1 ur">${shuffle(VEH).map(o=>`<button class="chip text-xl" onclick="vehPick(${i},'${o[2]}',this)">${o[1]} ${o[2]}</button>`).join('')}</div>
+  <div id="vr${i}" class="text-center font-bold text-purple-700"></div></div>`).join('');
+  window.vehDone=0;
+};
+function vehPick(i,n,b){
+  if(VEH[i][2]===n){b.classList.add('ok');$('vr'+i).textContent='✅ '+VEH[i][3];speak(VEH[i][0]);addStar(2);
+    if(++vehDone===VEH.length)confetti()}
+  else{b.classList.add('bad');speak('نہیں')}
+}
+
+/* ---------- SENTENCE BUILDER ---------- */
+V.write=el=>{
+  el.innerHTML=`<div class="card mb-2 text-center"><img alt="" class="hidden"><span class="text-5xl">🏪🚗🛵🚌</span><br>Look at the market picture (p. 89). Tap words to build sentences. / വാക്കുകൾ തൊട്ട് വാചകം ഉണ്ടാക്കൂ.<br>
+  <span class="ur">جیسے: یہ بازار ہے۔</span></div>
+  <div id="out" class="card ur text-2xl min-h-[70px] mb-2"></div>
+  <div class="flex gap-2 justify-center mb-2"><button class="btn" onclick="speak(out.textContent)">🔊 Read</button>
+  <button class="btn !bg-slate-400" onclick="out.textContent=''">🗑️ Clear</button><button class="btn !bg-orange-500" onclick="saveS()">⭐ Save</button></div>
+  <div class="flex flex-wrap gap-2 justify-center ur">${BUILD.map(w=>`<button class="chip text-xl" onclick="out.textContent+=this.textContent+' '">${w}</button>`).join('')}</div>
+  <div id="saved" class="ur mt-3 text-xl"></div>`;
+};
+function saveS(){const t=$('out').textContent.trim();if(!t)return;$('saved').innerHTML+=`<div class="card mb-1">${sent(t)}</div>`;$('out').textContent='';addStar(1)}
+
+/* ---------- QUIZ ---------- */
+V.quiz=el=>{
+  let q=0,sc=0;const qs=QUIZ.map(x=>({p:x[0],o:shuffle(x[1].map((t,i)=>[t,i===x[2]]))}));
+  const show=()=>{
+    if(q>=qs.length){const b=sc>=6?'🥇 Gold Shopper':sc>=4?'🥈 Silver Shopper':'🥉 Bronze Shopper';
+      if(sc>=4)confetti();addStar(sc*2);
+      el.innerHTML=`<div class="card text-center"><div class="text-7xl">🏆</div><h2 class="text-3xl font-bold">${sc} / ${qs.length}</h2><div class="text-2xl">${b}</div>
+      <button class="btn mt-3" onclick="go('quiz')">Play again</button></div>`;return}
+    const c=qs[q];
+    el.innerHTML=`<div class="card"><div class="text-sm">Question ${q+1}/${qs.length}</div><div class="ur text-2xl">${c.p}</div>
+    <div class="grid gap-2 mt-2">${c.o.map((o,i)=>`<button class="chip text-xl ur" data-i="${i}">${o[0]}</button>`).join('')}</div><div id="fb" class="text-xl font-bold mt-2"></div></div>`;
+    el.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>{
+      const r=c.o[b.dataset.i][1];b.classList.add(r?'ok':'bad');
+      $('fb').textContent=r?'🎉 Shabash!':'😅 Try next time!';if(r)sc++;
+      el.querySelectorAll('[data-i]').forEach(x=>x.onclick=null);setTimeout(()=>{q++;show()},1100)});
+  };show();
+};
+
+/* ---------- TRACING CANVAS ---------- */
+V.trace=el=>{
+  el.innerHTML=`<div class="card text-center"><p class="font-bold">Trace the word with your finger or mouse. / വിരൽ കൊണ്ട് എഴുതൂ.</p>
+  <div class="flex flex-wrap gap-2 justify-center my-2 ur">${TRACE.map(w=>`<button class="chip text-xl" data-w="${w}">${w}</button>`).join('')}</div>
+  <canvas id="cv" width="560" height="260"></canvas><div class="mt-2"><button class="btn" id="hear">🔊 Hear</button> <button class="btn !bg-slate-400" id="clr">Clear</button></div></div>`;
+  const cv=$('cv'),x=cv.getContext('2d');let word=TRACE[0],draw=false;
+  const bg=()=>{x.clearRect(0,0,560,260);x.fillStyle='#d1d5db';x.font='130px "Noto Nastaliq Urdu",serif';x.textAlign='center';x.textBaseline='middle';x.fillText(word,280,140)};
+  const pos=e=>{const r=cv.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return[(p.clientX-r.left)*560/r.width,(p.clientY-r.top)*260/r.height]};
+  const st=e=>{e.preventDefault();draw=true;const[a,b]=pos(e);x.beginPath();x.moveTo(a,b)};
+  const mv=e=>{if(!draw)return;e.preventDefault();const[a,b]=pos(e);x.strokeStyle='#ea580c';x.lineWidth=7;x.lineCap='round';x.lineTo(a,b);x.stroke()};
+  const en=()=>{if(draw){draw=false;addStar(0)}};
+  ['mousedown','touchstart'].forEach(n=>cv.addEventListener(n,st));
+  ['mousemove','touchmove'].forEach(n=>cv.addEventListener(n,mv));
+  ['mouseup','mouseleave','touchend'].forEach(n=>cv.addEventListener(n,en));
+  el.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>{word=b.dataset.w;bg();speak(word)});
+  $('clr').onclick=bg;$('hear').onclick=()=>speak(word);
+  (document.fonts?document.fonts.ready:Promise.resolve()).then(bg);
+};
+
+go('read');
+</script>
+</body>
+</html>
